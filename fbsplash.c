@@ -1,3 +1,4 @@
+#include "rasteratops-wordmark.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -189,15 +190,13 @@ DisplayInfo* calculate_display_info(Framebuffer *fb) {
     info->screen_width = fb->vinfo.xres;
     info->screen_height = fb->vinfo.yres;
 
-    // Calculate SVG dimensions to fit in screen while maintaining aspect ratio
-    float target_width = info->screen_width * 0.6f;  // Use 60% of screen width
-    float target_height = target_width * (500.0f / 1284.0f);  // Maintain SVG aspect ratio
-
-    // Adjust if height is too large
-    if (target_height > info->screen_height * 0.6f) {
-        target_height = info->screen_height * 0.6f;
-        target_width = target_height * (1284.0f / 500.0f);
-    }
+    // Whole font cells at every supported panel size.
+    float scale_x = info->screen_width * 0.6f / RASTERATOPS_MARK_WIDTH;
+    float scale_y = info->screen_height * 0.6f / RASTERATOPS_MARK_HEIGHT;
+    unsigned scale = (unsigned)(scale_x < scale_y ? scale_x : scale_y);
+    if (scale < 1) scale = 1;
+    float target_width = RASTERATOPS_MARK_WIDTH * scale;
+    float target_height = RASTERATOPS_MARK_HEIGHT * scale;
 
     // Set final dimensions and calculate centering offsets
     info->svg_width = (uint32_t)target_width;

@@ -1,0 +1,8 @@
+#!/bin/bash
+set -eu
+root=$(cd "$(dirname "$0")/.." && pwd)
+out=${1:?output directory}
+mkdir -p "$out"
+cc -O2 -I "$root" -o "$out/renderer" "$root/tools/rasteratops-render-preview.c" "$root/fbsplash.c" "$root/svg_parser.c" "$root/svg_renderer.c" -lm
+for angle in 0 90 180 270; do "$out/renderer" 640 480 "$angle" "$out/640-$angle.ppm"; done
+"$out/renderer" 1280 960 0 "$out/1280-0.ppm"

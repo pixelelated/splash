@@ -1,3 +1,4 @@
+LDLIBS += -lm
 # Source files to be compiled
 SRCS=main.c fbsplash.c svg_parser.c svg_renderer.c dt_rotation.c
 
@@ -19,7 +20,7 @@ all: $(TARGET)
 
 # Link object files to create the final executable
 $(TARGET): $(OBJS)
-	$(CC) $(OBJS) -o $(TARGET) $(LDFLAGS)
+	$(CC) $(OBJS) -o $(TARGET) $(LDFLAGS) $(LDLIBS)
 
 # Generic rule for compiling .c files into .o files
 %.o: %.c
@@ -33,3 +34,5 @@ install: $(TARGET)
 # Clean target removes all generated files
 clean:
 	rm -f $(OBJS) $(TARGET)
+
+main.o fbsplash.o svg_renderer.o: rasteratops-wordmark.h
