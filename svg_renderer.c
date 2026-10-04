@@ -2,14 +2,14 @@
 #include <math.h>
 #include <string.h>
 #include "svg_renderer.h"
-#include "rasteratops-wordmark.h"
+#include "pixelelated-wordmark.h"
 
 #define MAX_INTERSECTIONS 1000
 #define SUBPIXEL_PRECISION 8  // Sub-pixel precision for anti-aliasing
 
 /* Original SVG dimensions used for scaling calculations */
-static const float BASE_SVG_WIDTH = RASTERATOPS_MARK_WIDTH;
-static const float BASE_SVG_HEIGHT = RASTERATOPS_MARK_HEIGHT;
+static const float BASE_SVG_WIDTH = PIXELELATED_MARK_WIDTH;
+static const float BASE_SVG_HEIGHT = PIXELELATED_MARK_HEIGHT;
 
 /* Structure to track path intersections with scanlines */
 typedef struct {

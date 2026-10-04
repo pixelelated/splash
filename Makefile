@@ -35,4 +35,4 @@ install: $(TARGET)
 clean:
 	rm -f $(OBJS) $(TARGET)
 
-main.o fbsplash.o svg_renderer.o: rasteratops-wordmark.h
+main.o fbsplash.o svg_renderer.o: pixelelated-wordmark.h

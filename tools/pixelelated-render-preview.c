@@ -3,8 +3,8 @@
 #include "fbsplash.h"
 #include "svg_parser.h"
 #include "svg_renderer.h"
-#define RASTERATOPS_WORDMARK_DATA
-#include "rasteratops-wordmark.h"
+#define PIXELELATED_WORDMARK_DATA
+#include "pixelelated-wordmark.h"
 int main(int argc, char **argv) {
     if (argc != 5) return 2;
     unsigned w=atoi(argv[1]), h=atoi(argv[2]); int rotation=atoi(argv[3]);
@@ -12,8 +12,8 @@ int main(int argc, char **argv) {
     fb.finfo.line_length=w*4; fb.screensize=w*h*4; fb.buffer=calloc(1,fb.screensize);
     DisplayInfo *d=calculate_display_info(&fb);
     if (!fb.buffer || !d) return 3;
-    for (size_t i=0;i<sizeof(rasteratops_paths)/sizeof(rasteratops_paths[0]);++i) {
-        SVGPath *s=parse_svg_path(rasteratops_paths[i],"rgb(230,230,230)");
+    for (size_t i=0;i<sizeof(pixelelated_paths)/sizeof(pixelelated_paths[0]);++i) {
+        SVGPath *s=parse_svg_path(pixelelated_paths[i],"rgb(230,230,230)");
         if (!s || s->num_paths != 1) return 4;
         if(rotation) rotate_svg_path(s,rotation);
         render_svg_path(&fb,s,d); free_svg_path(s);

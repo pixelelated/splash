@@ -8,10 +8,10 @@
 #include "svg_renderer.h"
 #include "dt_rotation.h"
 
-// Rasteratops wordmark; renderer retained from ROCKNIX/rocknix-splash.
-#define RASTERATOPS_WORDMARK_DATA
-#include "rasteratops-wordmark.h"
-#define NUM_PATHS (sizeof(rasteratops_paths) / sizeof(rasteratops_paths[0]))
+// pixelelated wordmark; renderer retained from ROCKNIX/rocknix-splash.
+#define PIXELELATED_WORDMARK_DATA
+#include "pixelelated-wordmark.h"
+#define NUM_PATHS (sizeof(pixelelated_paths) / sizeof(pixelelated_paths[0]))
 
 /*
  * Main program entry point
@@ -52,7 +52,7 @@ int main(void) {
 
     // Process and render each path component
     for (size_t i = 0; i < NUM_PATHS; i++) {
-        SVGPath *svg = parse_svg_path(rasteratops_paths[i], "rgb(230,230,230)");
+        SVGPath *svg = parse_svg_path(pixelelated_paths[i], "rgb(230,230,230)");
         if (!svg) {
             fprintf(stderr, "Failed to parse SVG path %zu\n", i);
             continue;
