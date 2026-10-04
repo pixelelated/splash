@@ -52,7 +52,7 @@ int main(void) {
 
     // Process and render each path component
     for (size_t i = 0; i < NUM_PATHS; i++) {
-        SVGPath *svg = parse_svg_path(pixelelated_paths[i], "rgb(230,230,230)");
+        SVGPath *svg = parse_svg_path(pixelelated_paths[i], pixelelated_fills[i]);
         if (!svg) {
             fprintf(stderr, "Failed to parse SVG path %zu\n", i);
             continue;

@@ -191,8 +191,8 @@ DisplayInfo* calculate_display_info(Framebuffer *fb) {
     info->screen_height = fb->vinfo.yres;
 
     // Whole font cells at every supported panel size.
-    float scale_x = info->screen_width * 0.6f / PIXELELATED_MARK_WIDTH;
-    float scale_y = info->screen_height * 0.6f / PIXELELATED_MARK_HEIGHT;
+    float scale_x = info->screen_width * 0.8f / PIXELELATED_MARK_WIDTH;
+    float scale_y = info->screen_height * 0.8f / PIXELELATED_MARK_HEIGHT;
     unsigned scale = (unsigned)(scale_x < scale_y ? scale_x : scale_y);
     if (scale < 1) scale = 1;
     float target_width = PIXELELATED_MARK_WIDTH * scale;

@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     DisplayInfo *d=calculate_display_info(&fb);
     if (!fb.buffer || !d) return 3;
     for (size_t i=0;i<sizeof(pixelelated_paths)/sizeof(pixelelated_paths[0]);++i) {
-        SVGPath *s=parse_svg_path(pixelelated_paths[i],"rgb(230,230,230)");
+        SVGPath *s=parse_svg_path(pixelelated_paths[i],pixelelated_fills[i]);
         if (!s || s->num_paths != 1) return 4;
         if(rotation) rotate_svg_path(s,rotation);
         render_svg_path(&fb,s,d); free_svg_path(s);

@@ -5,7 +5,7 @@
 #include "pixelelated-wordmark.h"
 
 #define MAX_INTERSECTIONS 1000
-#define SUBPIXEL_PRECISION 8  // Sub-pixel precision for anti-aliasing
+#define SUBPIXEL_PRECISION 1  // Crisp LCD: one sample at each pixel center
 
 /* Original SVG dimensions used for scaling calculations */
 static const float BASE_SVG_WIDTH = PIXELELATED_MARK_WIDTH;
@@ -86,28 +86,7 @@ void rotate_svg_path(SVGPath *svg, int angle) {
     }
 }
 
-/* Enhanced color blending for vibrant anti-aliasing
- * Maintains color saturation while blending with black background
- */
-static uint32_t blend_color_vibrant(uint32_t color, float alpha) {
-    // Extract RGB components
-    uint8_t r = (color >> 16) & 0xFF;
-    uint8_t g = (color >> 8) & 0xFF;
-    uint8_t b = color & 0xFF;
-
-    // Adjust alpha to maintain color vibrancy at edges
-    // We use a non-linear alpha curve that preserves more of the original color
-    alpha = alpha < 0.5f ? 2.0f * alpha * alpha : 1.0f - 2.0f * (1.0f - alpha) * (1.0f - alpha);
-
-    // Convert back to integer color value (blending with black background)
-    uint8_t new_r = (uint8_t)(r * alpha);
-    uint8_t new_g = (uint8_t)(g * alpha);
-    uint8_t new_b = (uint8_t)(b * alpha);
-
-    return (new_r << 16) | (new_g << 8) | new_b;
-}
-
-/* Render a path including holes using scanline algorithm with anti-aliasing */
+/* Render a path including holes using scanline algorithm with crisp pixel-center sampling */
 static void render_path(Framebuffer *fb, SVGPath *svg, DisplayInfo *display_info) {
     float min_x, max_x, min_y, max_y;
     calculate_svg_bounds(svg, &min_x, &max_x, &min_y, &max_y);
@@ -125,7 +104,7 @@ static void render_path(Framebuffer *fb, SVGPath *svg, DisplayInfo *display_info
     offset_x += (display_info->svg_width - (BASE_SVG_WIDTH * scale)) / 2;
     offset_y += (display_info->svg_height - (BASE_SVG_HEIGHT * scale)) / 2;
 
-    // Calculate screen space bounds with some padding for anti-aliasing
+    // Calculate screen space bounds with one-pixel clipping padding
     int screen_min_y = (int)((min_y * scale + offset_y) - 1);
     int screen_max_y = (int)((max_y * scale + offset_y) + 1);
 
@@ -149,14 +128,14 @@ static void render_path(Framebuffer *fb, SVGPath *svg, DisplayInfo *display_info
         return;
     }
 
-    // Process each scanline with subpixel precision for anti-aliasing
+    // Process each scanline at pixel centers
     for (int y = screen_min_y; y <= screen_max_y; y++) {
         // Clear coverage buffer for the current scanline
         memset(coverage_buffer, 0, fb->vinfo.xres * sizeof(float));
 
-        // Process multiple subpixel scanlines for anti-aliasing
+        // Sample once at the pixel center; preserve LCD gaps
         for (int subpixel = 0; subpixel < SUBPIXEL_PRECISION; subpixel++) {
-            float subpixel_y = y + (float)subpixel / SUBPIXEL_PRECISION;
+            float subpixel_y = y + 0.5f;
             int num_intersections = 0;
 
             // Find intersections with all path segments
@@ -210,9 +189,9 @@ static void render_path(Framebuffer *fb, SVGPath *svg, DisplayInfo *display_info
                         float x_start = intersections[i].x;
                         float x_end = intersections[i + 1].x;
 
-                        // Process each pixel with anti-aliasing
-                        int ix_start = (int)floorf(x_start);
-                        int ix_end = (int)ceilf(x_end);
+                        // Process each pixel with crisp pixel-center sampling
+                        int ix_start = (int)ceilf(x_start - 0.5f);
+                        int ix_end = (int)ceilf(x_end - 0.5f) - 1;
 
                         // Clip to screen bounds
                         if (ix_start < 0) ix_start = 0;
@@ -220,20 +199,7 @@ static void render_path(Framebuffer *fb, SVGPath *svg, DisplayInfo *display_info
 
                         // Accumulate coverage for each pixel
                         for (int x = ix_start; x <= ix_end; x++) {
-                            float pixel_coverage = 1.0f;
-
-                            // Calculate coverage for left edge
-                            if (x == ix_start && x_start > ix_start) {
-                                pixel_coverage *= (1.0f - (x_start - ix_start));
-                            }
-
-                            // Calculate coverage for right edge
-                            if (x == ix_end && x_end < ix_end + 1) {
-                                pixel_coverage *= (x_end - ix_end);
-                            }
-
-                            // Accumulate coverage
-                            coverage_buffer[x] += pixel_coverage / SUBPIXEL_PRECISION;
+                            coverage_buffer[x] = 1.0f;
                         }
                     }
                 }
@@ -246,13 +212,10 @@ static void render_path(Framebuffer *fb, SVGPath *svg, DisplayInfo *display_info
                 // Clamp coverage to [0, 1]
                 if (coverage_buffer[x] > 1.0f) coverage_buffer[x] = 1.0f;
 
-                // If coverage is very high (interior of shape), use original color
-                if (coverage_buffer[x] > 0.98f) {
+                // LCD artwork has hard RGB555 bands: sample coverage without
+                // blending with black, which would invent intermediate colors.
+                if (coverage_buffer[x] >= 0.5f) {
                     set_pixel(fb, x, y, fill_color);
-                } else {
-                    // For edges, use vibrant color blending
-                    uint32_t aa_color = blend_color_vibrant(fill_color, coverage_buffer[x]);
-                    set_pixel(fb, x, y, aa_color);
                 }
             }
         }
@@ -263,7 +226,7 @@ static void render_path(Framebuffer *fb, SVGPath *svg, DisplayInfo *display_info
     free(intersections);
 }
 
-/* Render an SVG path to the framebuffer with anti-aliasing */
+/* Render an SVG path to the framebuffer with crisp pixel-center sampling */
 void render_svg_path(Framebuffer *fb, SVGPath *svg, DisplayInfo *display_info) {
     static bool first_path = true;
 
